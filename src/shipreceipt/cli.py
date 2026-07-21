@@ -47,8 +47,8 @@ def _parser() -> argparse.ArgumentParser:
     create.add_argument("--key", type=Path)
     create.add_argument("--label")
     create.add_argument("--exclude", action="append", default=[])
+    create.add_argument("--quiet", action="store_true", help="suppress output except for errors")
     create.set_defaults(func=_create)
-
     inspect = subparsers.add_parser("inspect", help="Inspect a receipt.")
     inspect.add_argument("receipt", type=Path)
     inspect.add_argument("--json", action="store_true")
@@ -80,13 +80,14 @@ def _create(args: argparse.Namespace) -> int:
         ignored_paths=ignored_paths,
     )
     write_receipt(args.output, receipt)
-    auth = "signed" if "authentication" in receipt else "unsigned"
-    print(
-        f"CREATED {args.output} "
-        f"files={len(receipt['files'])} "
-        f"id={receipt['receipt_id']} "
-        f"auth={auth}",
-    )
+    if not args.quiet:
+        auth = "signed" if "authentication" in receipt else "unsigned"
+        print(
+            f"CREATED {args.output} "
+            f"files={len(receipt['files'])} "
+            f"id={receipt['receipt_id']} "
+            f"auth={auth}",
+        )
     return 0
 
 
