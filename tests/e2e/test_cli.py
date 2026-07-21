@@ -29,7 +29,7 @@ def test_user_can_keygen_create_inspect_and_verify(tmp_path: Path) -> None:
     (bundle / "deliverable.txt").write_text("customer delivery\n", encoding="utf-8")
     key = tmp_path / "release.key"
     receipt = tmp_path / "delivery.json"
-
+    quiet_receipt = tmp_path / "quiet-delivery.json"
     keygen = run_cli(project_root, "keygen", str(key))
     created = run_cli(
         project_root,
@@ -53,12 +53,25 @@ def test_user_can_keygen_create_inspect_and_verify(tmp_path: Path) -> None:
         str(key),
     )
 
+    quiet_create = run_cli(
+        project_root,
+        "create",
+        str(bundle),
+        "--output",
+        str(quiet_receipt),
+        "--quiet",
+    )
+
     assert keygen.returncode == 0, keygen.stderr
     assert created.returncode == 0, created.stderr
     assert inspected.returncode == 0, inspected.stderr
     assert json.loads(inspected.stdout)["label"] == "Customer A"
     assert verified.returncode == 0, verified.stderr
     assert "VERIFIED" in verified.stdout
+
+    assert quiet_create.returncode == 0
+    assert quiet_create.stdout == ""
+    assert quiet_receipt.exists()
 
 
 @pytest.mark.e2e
